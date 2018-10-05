@@ -17,15 +17,27 @@ Builder.load_string("""
 <ExamplePage>:
     orientation: 'vertical'
     Label:
-    Button:
-        text: 'Open Popup'
+    BoxLayout:
+        orientation: 'horizontal'
         # Pass the object to recieve the date into the open() call.
-        on_release: root.date_picker.open(date_text)
+        Button:
+            text: 'Set Label 1 date'
+            on_release: root.date_picker.open(date_text)
+        Button:
+            text: 'Set Label 2 date'
+            on_release: root.date_picker.open(another_date_text)
     BoxLayout:
         Label:
-            text: 'Date:'
+            text: 'Label 1 date:'
         Label:
             id: date_text
+        Label:
+            text: 'Label 2 date:'
+        Label:
+            id: another_date_text
+    Button:
+        text: 'Change this text'
+        on_release: root.date_picker.open(self)
     Label:
 """)
 
