@@ -13,11 +13,6 @@ from kivy.uix.label import Label
 
 from date_picker_widget import CalendarPopup
 
-import os
-
-date_picker_kv = os.path.join('.', 'date_picker_widget.kv')
-
-Builder.load_file(date_picker_kv)
 Builder.load_string("""
 <ExamplePage>:
     orientation: 'vertical'

@@ -1,5 +1,5 @@
 # from kivy.app import App
-# from kivy.lang import Builder
+from kivy.lang import Builder
 from kivy.properties import (BooleanProperty, ListProperty,
                              ObjectProperty, StringProperty)
 from kivy.uix.boxlayout import BoxLayout
@@ -10,7 +10,81 @@ from kivy.uix.screenmanager import Screen, ScreenManager
 
 import calendar
 import datetime
-import os
+
+
+# Add kv file into Builder.load_string to package the widget into
+# one file.
+Builder.load_string("""
+<CalendarPopup>:
+    BoxLayout:
+        id: vert_layout
+        orientation: 'vertical'
+        padding: dp(15)
+        BoxLayout:
+            size_hint_y: 0.15
+            orientation: 'horizontal'
+            Button:
+                size_hint_x: 0.25
+                text: '<'
+                on_release: root.change_year('right')
+            Label:
+                id: year
+                # text: 'year'
+            Button:
+                size_hint_x: 0.25
+                text: '>'
+                on_release: root.change_year('left')
+        BoxLayout:
+            size_hint_y: 0.15
+            orientation: 'horizontal'
+            Button:
+                size_hint_x: 0.25
+                text: '<'
+                on_release: root.change_month('right')
+            Label:
+                id: month
+                # text: 'month'
+            Button:
+                size_hint_x: 0.25
+                text: '>'
+                on_release: root.change_month('left')
+
+<CalendarScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+        BoxLayout:
+            size_hint_y: None
+            height: dp(40)
+            orientation: 'horizontal'
+            Label:
+                text: 'M'
+            Label:
+                text: 'T'
+            Label:
+                text: 'W'
+            Label:
+                text: 'T'
+            Label:
+                text: 'F'
+            Label:
+                text: 'S'
+            Label:
+                text: 'S'
+        BoxLayout:
+            id: vert_layout
+            orientation: 'vertical'
+
+<DateButton>:
+    on_release:
+        if self.button_month == 'before': \
+        self.root.change_month('right')
+        # Needs a select function
+        if self.button_month == 'current': \
+        self.root.select_date(int(self.text))
+        if self.button_month == 'after': \
+        self.root.change_month('left')
+""")
+
 
 class CalendarPopup(ModalView):
 
