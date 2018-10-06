@@ -173,7 +173,10 @@ class CalendarPopup(ModalView):
         # Turn date selection into datetime.datetime format.
         date = datetime.datetime(int(self.ids.year.text),
                 self.months_to_num.get(self.ids.month.text), day)
-        self.selection = date
+        if self.selection == date:
+            self.dismiss()
+        else:
+            self.selection = date
 
     def on_direction(self, instance, value):
         # Dynamically change screen transition direction.
