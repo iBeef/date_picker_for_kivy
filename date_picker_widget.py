@@ -95,8 +95,7 @@ class CalendarPopup(ModalView):
 
     def __init__(self, **kwargs):
         super(CalendarPopup, self).__init__(**kwargs)
-        # self.parent_obj = parent_obj
-        self.calendar_screens = CalendarScreens()
+        self.calendar_screens = CalendarScreens(pop_root=self)
         self.ids.vert_layout.add_widget(self.calendar_screens)
         self.months_to_num = {v: k for k,v in enumerate(calendar.month_name)}
         self.num_to_months = {k: v for k,v in enumerate(calendar.month_name)}
@@ -200,10 +199,12 @@ class CalendarPopup(ModalView):
 class CalendarScreens(ScreenManager):
 
 
+    pop_root = ObjectProperty()
+
     def __init__(self, **kwargs):
         super(CalendarScreens, self).__init__(**kwargs)
-        self.screen_1 = CalendarScreen(name='screen_1')
-        self.screen_2 = CalendarScreen(name='screen_2')
+        self.screen_1 = CalendarScreen(name='screen_1', pop_root=self.pop_root)
+        self.screen_2 = CalendarScreen(name='screen_2', pop_root=self.pop_root)
         self.screen_2.first_run = True
         self.add_widget(self.screen_1)
         self.add_widget(self.screen_2)
@@ -211,14 +212,14 @@ class CalendarScreens(ScreenManager):
 class CalendarScreen(Screen):
 
 
+    pop_root = ObjectProperty()
     first_run = BooleanProperty(False)
 
     def on_pre_enter(self):
         # Refresh calendar before transition animation
         if self.first_run:
-            self.update_calendar(self.parent.parent.parent.date[0],
-                    self.parent.parent.parent.date[1])
-
+            self.update_calendar(self.pop_root.date[0],
+                    self.pop_root.date[1])
     def on_leave(self):
         # Clear calendar ready for next change
         self.ids.vert_layout.clear_widgets()
@@ -238,7 +239,7 @@ class CalendarScreen(Screen):
                 date_butt = DateButton(text=str(day))
                 # Create a reference to main popup widget for each
                 # button
-                date_butt.root = self.manager.parent.parent
+                date_butt.root = self.pop_root
                 # If dates from previous month, highlight blue
                 if index == 0 and day > 7:
                     date_butt.button_month = 'before'
