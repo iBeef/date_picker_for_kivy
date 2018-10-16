@@ -11,8 +11,9 @@ import calendar
 import datetime
 
 
-# Add kv file into Builder.load_string to package the widget into
-# one file.
+"""Add kv file into Builder.load_string to package the widget into
+one file.
+"""
 Builder.load_string("""
 <CalendarPopup>:
     BoxLayout:
@@ -86,6 +87,7 @@ Builder.load_string("""
 
 
 class CalendarPopup(ModalView):
+    """Creates a popup calendar that lets the user select a date"""
 
 
     date = ListProperty()
@@ -95,7 +97,8 @@ class CalendarPopup(ModalView):
 
     def __init__(self, **kwargs):
         super(CalendarPopup, self).__init__(**kwargs)
-        self.calendar_screens = CalendarScreens(pop_root=self)
+        # self.parent_obj = parent_obj
+        self.calendar_screens = CalendarScreens()
         self.ids.vert_layout.add_widget(self.calendar_screens)
         self.months_to_num = {v: k for k,v in enumerate(calendar.month_name)}
         self.num_to_months = {k: v for k,v in enumerate(calendar.month_name)}
@@ -110,19 +113,23 @@ class CalendarPopup(ModalView):
             )
 
     def open(self, parent_obj, *largs, **kwargs):
-        # Pass in the object that's calling the popup to easily
-        # reference it back.
+        """Pass in the object that's calling the popup to easily
+        reference it back when opening the popup.
+        """
         self.parent_obj = parent_obj
         # Call the original open() function
         super(CalendarPopup, self).open()
 
     def on_dismiss(self):
-        # Shecdule a slight delay to stop the popup reverting to
-        # date whilst still open (Looks a lot tidier).
+        """Shecdule a slight delay to stop the popup reverting to
+        date whilst still open (Looks a lot tidier).
+        """
         Clock.schedule_once(self.dismissal, 0.15)
 
     def dismissal(self, dt):
-        # Reset popup to current month for the next time it's opened.
+        """Reset popup to current month for the next time it's
+        opened.
+        """
         self.calendar_screens.screen_1.ids.vert_layout.clear_widgets()
         self.calendar_screens.screen_2.ids.vert_layout.clear_widgets()
         self.calendar_screens.current = 'screen_1'
@@ -133,9 +140,11 @@ class CalendarPopup(ModalView):
             self.current_date.year,
             self.current_date.month
             )
+        # Stops prevention of first calendar change when re-opened
+        self.date = [self.current_date.year, self.current_date.month]
 
     def change_month(self, direction):
-        # Increase or decrease the month currently showing.
+        """Increase or decrease the month currently showing."""
         self.direction = direction
         if direction == 'left':
             if self.months_to_num.get(self.ids.month.text) < 12:
@@ -157,7 +166,7 @@ class CalendarPopup(ModalView):
             ]
 
     def change_year(self, direction):
-        # Increase or decrease the year currently showing.
+        """Increase or decrease the year currently showing."""
         self.direction = direction
         if direction == 'left':
             self.ids.year.text = str(int(self.ids.year.text) + 1)
@@ -169,7 +178,7 @@ class CalendarPopup(ModalView):
             ]
 
     def select_date(self, day):
-        # Turn date selection into datetime.datetime format.
+        """Turn date selection into datetime.datetime format."""
         date = datetime.datetime(int(self.ids.year.text),
                 self.months_to_num.get(self.ids.month.text), day)
         if self.selection == date:
@@ -178,54 +187,60 @@ class CalendarPopup(ModalView):
             self.selection = date
 
     def on_direction(self, instance, value):
-        # Dynamically change screen transition direction.
+        """Dynamically change screen transition direction."""
         self.calendar_screens.transition.direction = self.direction
 
     def on_date(self, instance, value):
-        # Change between screens to make it look like each month/year
-        # has it's own screen.
+        """Change between screens to make it look like each
+        month/year has it's own screen.
+        """
         self.calendar_screens.current = self.screen_switch.get(
             self.calendar_screens.current_screen.name)
 
     def on_selection(self, instance, value):
-        # Use this function to return date value to main application
-        #-----------------------------------------------------------
-        # Currently returning the date to the calling objects text
-        # variable
+        """Use this function to return date value to main application
+        -------------------------------------------------------------
+        Currently returning the date to the calling objects text
+        variable
+        """
         date = datetime.datetime.strftime(self.selection, '%d/%m/%Y')
         self.parent_obj.text = date
         self.dismiss()
 
+
 class CalendarScreens(ScreenManager):
+    """Manages the screens which the calendars are generated.
+    Two screens are used with changing transitions to make every
+    month/year to appear on a differnt screen."""
 
-
-    pop_root = ObjectProperty()
 
     def __init__(self, **kwargs):
         super(CalendarScreens, self).__init__(**kwargs)
-        self.screen_1 = CalendarScreen(name='screen_1', pop_root=self.pop_root)
-        self.screen_2 = CalendarScreen(name='screen_2', pop_root=self.pop_root)
+        self.screen_1 = CalendarScreen(name='screen_1')
+        self.screen_2 = CalendarScreen(name='screen_2')
         self.screen_2.first_run = True
         self.add_widget(self.screen_1)
         self.add_widget(self.screen_2)
 
+
 class CalendarScreen(Screen):
+    """The screen in which the celandar date data is generated."""
 
 
-    pop_root = ObjectProperty()
     first_run = BooleanProperty(False)
 
     def on_pre_enter(self):
-        # Refresh calendar before transition animation
+        """Refresh calendar before transition animation"""
         if self.first_run:
-            self.update_calendar(self.pop_root.date[0],
-                    self.pop_root.date[1])
+            self.update_calendar(self.parent.parent.parent.date[0],
+                    self.parent.parent.parent.date[1])
+
     def on_leave(self):
-        # Clear calendar ready for next change
+        """Clear calendar ready for next change"""
         self.ids.vert_layout.clear_widgets()
 
     def update_calendar(self, year, month):
-        # Input days into calendar
+        """Input days into calendar"""
         if self.first_run == False:
             self.first_run = True
         current_month = self.fill_month(year, month)
@@ -237,9 +252,10 @@ class CalendarScreen(Screen):
             box = BoxLayout()
             for day in week:
                 date_butt = DateButton(text=str(day))
-                # Create a reference to main popup widget for each
-                # button
-                date_butt.root = self.pop_root
+                """Create a reference to main popup widget for each
+                button.
+                """
+                date_butt.root = self.manager.parent.parent
                 # If dates from previous month, highlight blue
                 if index == 0 and day > 7:
                     date_butt.button_month = 'before'
@@ -257,8 +273,9 @@ class CalendarScreen(Screen):
 
 
     def fill_month(self, year, month):
-        # Retrieve a list of all dates within a month and fill gaps
-        # around with previous and following months.
+        """Retrieve a list of all dates within a month and fill gaps
+        around with previous and following months.
+        """
         if month == 1:
             month_before = list(calendar.monthcalendar(year - 1, 12))
         else:
@@ -280,7 +297,10 @@ class CalendarScreen(Screen):
         return current_month
 
 class DateButton(Button):
+    """The button which holds the date information that the
+    calendar is populated with.
+    """
 
 
-        root = ObjectProperty()
-        button_month = StringProperty()
+    root = ObjectProperty()
+    button_month = StringProperty()
