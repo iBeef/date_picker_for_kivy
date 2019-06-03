@@ -10,7 +10,7 @@ objects by passing a different object in the open argument opposed to making
 a new popup every time.
 
 If you wish to customise the way a date is passed back into the app then
-the on_selection property can be easilt modified which is originally passed
+the on_selection property can be easily modified which is originally passed
 a datetime object.
 
 example_usage.py shows how the date picker can be used.
